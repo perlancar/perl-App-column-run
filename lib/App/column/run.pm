@@ -24,7 +24,7 @@ $SPEC{column_run} = {
 This utility is similar to using the Unix utility <prog:pr> to columnate output,
 something like (in bash):
 
-    % pr -w $COLUMNS -l 99999 <(command1 args...) <(command2 args...)
+    % pr -t -m -w $COLUMNS -l 99999 <(command1 args...) <(command2 args...)
 
 except with the following features:
 
