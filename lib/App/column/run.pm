@@ -21,13 +21,16 @@ $SPEC{column_run} = {
     summary => 'Run several commands and show their output in multiple columns',
     description => <<'_',
 
-Features:
+This utility is similar to using the Unix utility <prog:pr> to columnate output,
+something like (in bash):
+
+    % pr -w $COLUMNS -l 99999 <(command1 args...) <(command2 args...)
+
+except with the following features:
 
 * ANSI color and wide character handling
 
-* multiple output backend (HTML or text)
-
-* passing adjusted COLUMNS environment so commands can adjust their output
+* passing adjusted COLUMNS environment to commands so they can adjust output
 
 * Passing common arguments to all commands
 
@@ -53,7 +56,8 @@ _
     },
     'cmdline.skip_format' => 1,
     links => [
-        {url=>'prog:column', summary=>'Unix utility'},
+        {url=>'prog:pr', summary=>'Unix utility to format and columnate text'},
+        {url=>'prog:column', summary=>'Unix utility to fill columns with list'},
         {url=>'prog:diff', summary=>'The --side-by-side (-y) option display files in two columns'},
     ],
 };
