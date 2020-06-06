@@ -73,7 +73,7 @@ _
     ],
 };
 sub column_run {
-    require IPC::Open2;
+    require IPC::Run;
     require ShellQuote::Any::PERLANCAR;
     require Term::App::Util::Size;
     require Text::WideChar::Util;
@@ -106,9 +106,10 @@ sub column_run {
     # way: one by one and grab the whole output. in the future we might do this
     # parallel and line-by-line.
 
-    my $stdin_lines;
+    my $stdin = "";
     unless (-t STDIN) {
-        $stdin_lines = [<STDIN>];
+        local $/;
+        $stdin = <STDIN>;
     }
 
     my @command_outputs; # ([line1-from-cmd1, ...], [line1-from-cmd2, ...], ...)
@@ -117,11 +118,14 @@ sub column_run {
         if ($args{args}) {
             $cmd .= " " . ShellQuote::Any::PERLANCAR::shell_quote(@{ $args{args} });
         }
-        my ($chld_out, $chld_in);
-        my $pid = IPC::Open2::open2($chld_out, $chld_in, $cmd);
-        if ($stdin_lines) { print $chld_in $_ for @$stdin_lines }
-        $command_outputs[$i] = [<$chld_out>];
-        waitpid($pid, 0);
+        my ($out, $err);
+        IPC::Run::run(
+            sub { system $cmd; if ($?) { die "Can't system($cmd):, exit code=".($? < 0 ? $? : $? >> 8) } },
+            \$stdin,
+            \$out,
+            \$err,
+        );
+        $command_outputs[$i] = [$out];
     }
 
     use DD; dd \@command_outputs;
