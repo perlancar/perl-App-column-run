@@ -44,9 +44,6 @@ _
             'x.name.is_plural' => 1,
             'x.name.singular' => 'arg',
             schema => ['array*', of=>'str*'],
-            req => 1,
-            pos => 0,
-            slurpy => 1,
         },
         linum => {
             summary => 'Add line number',
@@ -103,7 +100,7 @@ sub column_run {
     $term_width -= $separator_width * ($num_commands-1);
 
     my $column_width = int($term_width / $num_commands);
-    $per_column_width > 1 or return [412, "No horizontal room for the columns"];
+    $column_width > 1 or return [412, "No horizontal room for the columns"];
 
     # start the programs and capture the output. for now we do this in a simple
     # way: one by one and grab the whole output. in the future we might do this
@@ -124,6 +121,7 @@ sub column_run {
         my $pid = IPC::Open2::open2($chld_out, $chld_in, $cmd);
         if ($stdin_lines) { print $chld_in $_ for @$stdin_lines }
         $command_outputs[$i] = [<$chld_out>];
+        waitpid($pid, 0);
     }
 
     use DD; dd \@command_outputs;
