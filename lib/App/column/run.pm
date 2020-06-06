@@ -10,7 +10,11 @@ use strict;
 use warnings;
 use Log::ger;
 
+use Text::Column::Util;
+
 our %SPEC;
+
+# TODO: color theme
 
 $SPEC{column_run} = {
     v => 1.1,
@@ -31,6 +35,7 @@ Features:
 
 _
     args => {
+        %Text::Column::Util::args_common,
         commands => {
             'x.name.is_plural' => 1,
             'x.name.singular' => 'command',
@@ -45,28 +50,8 @@ _
             'x.name.singular' => 'arg',
             schema => ['array*', of=>'str*'],
         },
-        linum => {
-            summary => 'Add line number',
-            schema => 'bool*',
-        },
-        linum_width => {
-            summary => 'Line number width',
-            schema => 'posint*',
-        },
-        separator => {
-            summary => 'Separator character between columns',
-            schema => 'str*',
-            default => '|',
-        },
-        on_long_line => {
-            summary => 'What to do to long lines',
-            schema => ['str*', in=>['clip','wrap']],
-            default => 'clip',
-        },
-        # TODO: column_widths
-        # TODO: column_bgcolors
-        # TODO: column_fgcolors
     },
+    'cmdline.skip_format' => 1,
     links => [
         {url=>'prog:column', summary=>'Unix utility'},
         {url=>'prog:diff', summary=>'The --side-by-side (-y) option display files in two columns'},
@@ -75,61 +60,49 @@ _
 sub column_run {
     require IPC::Run;
     require ShellQuote::Any::PERLANCAR;
-    require Term::App::Util::Size;
-    require Text::WideChar::Util;
 
     my %args = @_;
-    my $commands = $args{commands};
-    my $num_commands = @$commands;
+    my $commands = delete $args{commands};
+    my $command_args = delete $args{args};
 
-    # calculate widths
+    Text::Column::Util::show_texts_in_columns(
+        %args,
+        num_columns => scalar @$commands,
+        gen_texts => sub {
+            my %gargs = @_;
+            # start the programs and capture the output. for now we do this in a
+            # simple way: one by one and grab the whole output. in the future we
+            # might do this parallel and line-by-line.
 
-    my $term_width0 = Term::App::Util::Size::term_width()->[2];
-    my $linum = $args{linenum};
-    my $linum_width = $args{linenum_width} // 4;
-    my $term_width = $term_width0;
-    if ($linum) {
-        $term_width0 > $linum_width
-            or return [412, "No horizontal room for line number"];
-        $term_width -= $linum_width;
-    }
-    my $separator = $args{separator} // '|';
-    my $separator_width = Text::WideChar::Util::mbswidth($separator);
-    $term_width > $separator_width * ($num_commands-1)
-        or return [412, "No horizontal room for separators"];
-    $term_width -= $separator_width * ($num_commands-1);
+            my $stdin = "";
+            unless (-t STDIN) {
+                local $/;
+                $stdin = <STDIN>;
+            }
 
-    my $column_width = int($term_width / $num_commands);
-    $column_width > 1 or return [412, "No horizontal room for the columns"];
+            local $ENV{COLUMNS} = $gargs{column_width};
 
-    # start the programs and capture the output. for now we do this in a simple
-    # way: one by one and grab the whole output. in the future we might do this
-    # parallel and line-by-line.
-
-    my $stdin = "";
-    unless (-t STDIN) {
-        local $/;
-        $stdin = <STDIN>;
-    }
-
-    my @command_outputs; # ([line1-from-cmd1, ...], [line1-from-cmd2, ...], ...)
-    for my $i (0..$#{$commands}) {
-        my $cmd = $commands->[$i];
-        if ($args{args}) {
-            $cmd .= " " . ShellQuote::Any::PERLANCAR::shell_quote(@{ $args{args} });
-        }
-        my ($out, $err);
-        IPC::Run::run(
-            sub { system $cmd; if ($?) { die "Can't system($cmd):, exit code=".($? < 0 ? $? : $? >> 8) } },
-            \$stdin,
-            \$out,
-            \$err,
-        );
-        $command_outputs[$i] = [$out];
-    }
-
-    use DD; dd \@command_outputs;
-    [200];
+            my @texts; # ([line1-from-cmd1, ...], [line1-from-cmd2, ...], ...)
+            for my $i (0..$#{$commands}) {
+                my $cmd = $commands->[$i];
+                if ($command_args) {
+                    $cmd .= " " . ShellQuote::Any::PERLANCAR::shell_quote(@{ $command_args });
+                }
+                my ($out, $err);
+                IPC::Run::run(
+                    sub {
+                        system $cmd;
+                        if ($?) { die "Can't system($cmd):, exit code=".($? < 0 ? $? : $? >> 8) }
+                    },
+                    \$stdin,
+                    \$out,
+                    \$err,
+                );
+                $texts[$i] = $out;
+            }
+            \@texts;
+        }, # _gen_texts
+    );
 }
 
 1;
