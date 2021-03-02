@@ -26,15 +26,20 @@ something like (in bash):
 
     % pr -T -m -w $COLUMNS <(command1 args...) <(command2 args...)
 
-except with the following features:
+except with the following differences:
 
-* ANSI color and wide character handling
+* commands are run in sequence, not in parallel;
 
-* passing adjusted COLUMNS environment to commands so they can adjust output
+* all output are collected first, then displayed;
 
-* Passing common arguments to all commands
+* multiplexing STDIN to all commands;
 
-* Multiplexing STDIN to all commands
+* ANSI color and wide character handling;
+
+* passing adjusted COLUMNS environment to commands so they can adjust output;
+
+* passing common arguments to all commands.
+
 
 _
     args => {
