@@ -117,4 +117,10 @@ sub column_run {
 1;
 #ABSTRACT:
 
+=head1 append:SEE ALSO
+
+Terminal multiplexers: B<tmux>, B<screen>.
+
+Terminal emulator with multiple tabs, e.g. B<Konsole>, B<GNOME Terminal>.
+
 =cut
