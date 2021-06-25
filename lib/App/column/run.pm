@@ -184,6 +184,12 @@ sub column_run {
 
 =head1 DESCRIPTION
 
+Sample screenshots:
+
+# IMAGE: share/images/Screenshot_20210625_085610.png
+
+# IMAGE: share/images/Screenshot_20210625_094844.png
+
 
 =head1 SEE ALSO
 
