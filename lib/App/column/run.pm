@@ -103,6 +103,13 @@ _
             test => 0,
             'x.doc.show_result' => 0,
         },
+        {
+            summary => 'Compare different color themes',
+            src => q(cat ~/samples/bookstore.json | COLOR=1 column-run --envs-arrays-json '[{"DATA_DUMP_COLOR_THEME":"Default256"},{"DATA_DUMP_COLOR_THEME":"Default16"}]' 'json2dd --dumper=Data::Dump::Color' 'json2dd --dumper=Data::Dump::Color'),
+            src_plang => 'bash',
+            test => 0,
+            'x.doc.show_result' => 0,
+        },
     ],
 };
 sub column_run {
