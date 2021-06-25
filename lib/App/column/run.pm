@@ -15,6 +15,8 @@ use Text::Column::Util;
 our %SPEC;
 
 # TODO: color theme
+# TODO: parallel execution
+# TODO: streaming/immediate output
 
 $SPEC{column_run} = {
     v => 1.1,
@@ -28,9 +30,11 @@ something like (in bash):
 
 except with the following differences:
 
-* commands are run in sequence, not in parallel;
+* commands are run in sequence, not in parallel (although parallel execution is
+  a TODO list item);
 
-* all output are collected first, then displayed;
+* all output are collected first, then displayed (although streaming output is a
+  TODO list item);
 
 * multiplexing STDIN to all commands;
 
