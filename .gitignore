@@ -2,3 +2,4 @@ App-column-run-*
 .build
 *~
 nytprof*
+.DS_Store
